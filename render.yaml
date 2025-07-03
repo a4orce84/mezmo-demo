@@ -1,0 +1,28 @@
+# Render Blueprint for Docker Compose deployment
+services:
+  - type: web
+    name: frontend
+    env: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    buildCommand: ''
+    startCommand: ''
+    envVars:
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: static
+      mountPath: /usr/share/nginx/html
+  - type: web
+    name: backend
+    env: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    buildCommand: ''
+    startCommand: ''
+    envVars:
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: db
+      mountPath: /app/db
