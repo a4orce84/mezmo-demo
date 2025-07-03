@@ -1,0 +1,8 @@
+[build]
+  command = "echo 'No build step required'"
+  publish = "frontend/build"
+
+[[redirects]]
+  from = "/api/*"
+  to = "http://backend:6000/api/:splat"
+  status = 200
