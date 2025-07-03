@@ -10,9 +10,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-    disk:
-      name: static
-      mountPath: /usr/share/nginx/html
   - type: web
     name: backend
     env: docker
@@ -23,6 +20,3 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-    disk:
-      name: db
-      mountPath: /app/db
