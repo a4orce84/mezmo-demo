@@ -5,8 +5,6 @@ services:
     env: docker
     plan: free
     dockerfilePath: ./frontend/Dockerfile
-    buildCommand: ''
-    startCommand: ''
     envVars:
       - key: NODE_ENV
         value: production
@@ -15,8 +13,6 @@ services:
     env: docker
     plan: free
     dockerfilePath: ./backend/Dockerfile
-    buildCommand: ''
-    startCommand: ''
     envVars:
       - key: NODE_ENV
         value: production
