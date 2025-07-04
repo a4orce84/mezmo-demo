@@ -19,37 +19,36 @@ fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 // Initialize DB
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) throw err;
-  db.run(`CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    price REAL,
-    image TEXT
-  )`);
-  db.run(`CREATE TABLE IF NOT EXISTS cart (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id INTEGER,
-    quantity INTEGER,
-    FOREIGN KEY(product_id) REFERENCES products(id)
-  )`);
+  db.serialize(() => {
+    db.run(`CREATE TABLE IF NOT EXISTS products (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      price REAL,
+      image TEXT
+    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS cart (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      product_id INTEGER,
+      quantity INTEGER,
+      FOREIGN KEY(product_id) REFERENCES products(id)
+    )`);
+    // Seed products if table is empty
+    db.get('SELECT COUNT(*) as count FROM products', (err, row) => {
+      if (err) {
+        console.error('Error counting products:', err);
+        return;
+      }
+      if (row && row.count === 0) {
+        const stmt = db.prepare('INSERT INTO products (name, price, image) VALUES (?, ?, ?)');
+        stmt.run('T-shirt', 19.99, 'https://via.placeholder.com/150');
+        stmt.run('Mug', 9.99, 'https://via.placeholder.com/150');
+        stmt.run('Sticker', 2.99, 'https://via.placeholder.com/150');
+        stmt.finalize();
+      }
+    });
+  });
 });
 
-// Seed products if table is empty
-function seedProducts() {
-  db.get('SELECT COUNT(*) as count FROM products', (err, row) => {
-    if (err) {
-      console.error('Error counting products:', err);
-      return;
-    }
-    if (row && row.count === 0) {
-      const stmt = db.prepare('INSERT INTO products (name, price, image) VALUES (?, ?, ?)');
-      stmt.run('T-shirt', 19.99, 'https://via.placeholder.com/150');
-      stmt.run('Mug', 9.99, 'https://via.placeholder.com/150');
-      stmt.run('Sticker', 2.99, 'https://via.placeholder.com/150');
-      stmt.finalize();
-    }
-  });
-}
-seedProducts();
 
 // API endpoints
 app.get('/api/products', (req, res) => {
