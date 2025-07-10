@@ -1,17 +1,24 @@
-// OpenTelemetry JS log exporter setup for React (browser)
-import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
-import { OTLPLogExporter } from '@opentelemetry/exporter-otlp-http';
+// OpenTelemetry tracing for React (browser)
+import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { registerInstrumentations } from '@opentelemetry/instrumentation';
+import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 
-const provider = new LoggerProvider();
-const otlpUrl = window.location.hostname === 'localhost'
-  ? 'http://localhost:4318/v1/logs'
-  : 'http://otelcol:4318/v1/logs';
-const exporter = new OTLPLogExporter({
-  url: otlpUrl
-});
-provider.addLogRecordProcessor(new SimpleLogRecordProcessor(exporter));
+const provider = new WebTracerProvider();
+const otlpTraceUrl = window.location.hostname === 'localhost'
+  ? 'http://localhost:4318/v1/traces'
+  : 'https://YOUR_OTELCOL_URL/v1/traces'; // Replace with your collector's public URL for production
+const exporter = new OTLPTraceExporter({ url: otlpTraceUrl });
+provider.addSpanProcessor(new BatchSpanProcessor(exporter));
 provider.register();
 
-const logger = provider.getLogger('frontend-logger');
+registerInstrumentations({
+  instrumentations: [
+    new FetchInstrumentation({
+      propagateTraceHeaderCorsUrls: [/.*/],
+    }),
+  ],
+});
 
-export default logger;
+export const tracer = provider.getTracer('frontend-tracer');
