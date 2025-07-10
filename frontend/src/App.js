@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import logger from './otel-logger';
 import './App.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -10,7 +11,21 @@ function App() {
   const [checkoutMsg, setCheckoutMsg] = useState('');
 
   useEffect(() => {
-    fetch(`${API_URL}/api/products`).then(res => res.json()).then(setProducts);
+    logger.emit({
+      severityText: 'INFO',
+      body: 'App loaded',
+      attributes: { component: 'App' }
+    });
+    fetch(`${API_URL}/api/products`)
+      .then(res => res.json())
+      .then(data => {
+        setProducts(data);
+        logger.emit({
+          severityText: 'INFO',
+          body: `Fetched ${data.length} products`,
+          attributes: { component: 'App' }
+        });
+      });
     fetch(`${API_URL}/api/cart`).then(res => res.json()).then(setCart);
     setLoading(false);
   }, []);

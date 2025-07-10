@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+const logger = require('./otel-setup');
 
 const app = express();
 const PORT = 6000;
@@ -52,8 +53,25 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 
 // API endpoints
 app.get('/api/products', (req, res) => {
+  logger.emit({
+    severityText: 'INFO',
+    body: 'Received GET /api/products request',
+    attributes: { route: '/api/products' }
+  });
   db.all('SELECT * FROM products', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      logger.emit({
+        severityText: 'ERROR',
+        body: `Database error: ${err.message}`,
+        attributes: { route: '/api/products' }
+      });
+      return res.status(500).json({ error: err.message });
+    }
+    logger.emit({
+      severityText: 'INFO',
+      body: `Returned ${rows.length} products`,
+      attributes: { route: '/api/products' }
+    });
     res.json(rows);
   });
 });
