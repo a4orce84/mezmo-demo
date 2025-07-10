@@ -9,8 +9,7 @@ const provider = new LoggerProvider();
 const exporter = new OTLPLogExporter({
   url: "http://otelcol:4318/v1/logs"
 });
-provider.addProcessor(new SimpleLogRecordProcessor(exporter));
-provider.resource = provider.resource.merge(); // Ensure resource is set
+provider.addLogRecordProcessor(new SimpleLogRecordProcessor(exporter));
 const logger = provider.getLogger("backend-logger");
 
 module.exports = logger;
