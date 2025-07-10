@@ -1,4 +1,6 @@
-require('@opentelemetry/sdk-node').start();
+const { NodeSDK } = require('@opentelemetry/sdk-node');
+const sdk = new NodeSDK();
+sdk.start();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
