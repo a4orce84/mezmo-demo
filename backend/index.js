@@ -9,9 +9,8 @@ const sdk = new NodeSDK({
   serviceName: process.env.OTEL_SERVICE_NAME || 'mezmo-demo-backend',
 });
 
-sdk.start().then(() => {
-  console.log('OpenTelemetry SDK started');
-});
+sdk.start();
+console.log('OpenTelemetry SDK started');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
