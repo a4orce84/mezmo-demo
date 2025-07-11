@@ -5,12 +5,13 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 
-const provider = new WebTracerProvider();
 const otlpTraceUrl = window.location.hostname === 'localhost'
   ? 'http://localhost:4318/v1/traces'
-  : 'https://YOUR_OTELCOL_URL/v1/traces'; // Replace with your collector's public URL for production
+  : 'https://mezmo-plkw4.ondigitalocean.app/mezmo-demo-otelcol/v1/traces'; // Use your deployed otelcol public URL for production
 const exporter = new OTLPTraceExporter({ url: otlpTraceUrl });
-provider.addSpanProcessor(new BatchSpanProcessor(exporter));
+const provider = new WebTracerProvider({
+  spanProcessors: [new BatchSpanProcessor(exporter)]
+});
 provider.register();
 
 registerInstrumentations({
