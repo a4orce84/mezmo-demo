@@ -55,18 +55,15 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 
 // API endpoints
 app.get('/api/products', (req, res) => {
-  
+  console.log('Received GET /api/products request');
   db.all('SELECT * FROM products', (err, rows) => {
-    if (err) {
-      
-      return res.status(500).json({ error: err.message });
-    }
-    
+    if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
 });
 
 app.get('/api/cart', (req, res) => {
+  console.log('Received GET /api/cart request');
   db.all('SELECT cart.id, cart.quantity, products.* FROM cart JOIN products ON cart.product_id = products.id', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
@@ -75,6 +72,7 @@ app.get('/api/cart', (req, res) => {
 
 app.post('/api/cart', (req, res) => {
   const { product_id, quantity } = req.body;
+  console.log(`Received POST /api/cart request: product_id=${product_id}, quantity=${quantity}`);
   db.run('INSERT INTO cart (product_id, quantity) VALUES (?, ?)', [product_id, quantity], function(err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id: this.lastID });
@@ -82,6 +80,7 @@ app.post('/api/cart', (req, res) => {
 });
 
 app.delete('/api/cart/:id', (req, res) => {
+  console.log(`Received DELETE /api/cart/${req.params.id} request`);
   db.run('DELETE FROM cart WHERE id = ?', [req.params.id], function(err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true });
@@ -89,6 +88,7 @@ app.delete('/api/cart/:id', (req, res) => {
 });
 
 app.post('/api/checkout', (req, res) => {
+  console.log('Received POST /api/checkout request');
   db.run('DELETE FROM cart', [], function(err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true, message: 'Checkout complete!' });
