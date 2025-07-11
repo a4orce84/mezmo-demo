@@ -22,3 +22,6 @@ service:
     logs:
       receivers: [otlp]
       exporters: [logging]
+    logs:
+      receivers: [otlp]
+      exporters: [logging]
