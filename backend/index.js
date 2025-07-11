@@ -1,8 +1,6 @@
 const { NodeSDK } = require('@opentelemetry/sdk-node');
 const sdk = new NodeSDK();
 sdk.start();
-const { logs } = require('@opentelemetry/api');
-const logger = logs.getLogger('ecommerce-backend');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
