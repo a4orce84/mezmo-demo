@@ -28,7 +28,9 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT,
       price REAL,
-      image TEXT
+      image TEXT,
+      category TEXT,
+      description TEXT
     )`);
     db.run(`CREATE TABLE IF NOT EXISTS cart (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,10 +45,80 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
         return;
       }
       if (row && row.count === 0) {
-        const stmt = db.prepare('INSERT INTO products (name, price, image) VALUES (?, ?, ?)');
-        stmt.run('T-shirt', 19.99, 'https://via.placeholder.com/150');
-        stmt.run('Mug', 9.99, 'https://via.placeholder.com/150');
-        stmt.run('Sticker', 2.99, 'https://via.placeholder.com/150');
+        const products = [
+          {
+            name: 'Wireless Headphones',
+            price: 99.99,
+            image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80',
+            category: 'Electronics',
+            description: 'High-quality wireless headphones with noise cancellation.'
+          },
+          {
+            name: 'Smartwatch',
+            price: 149.99,
+            image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=400&q=80',
+            category: 'Electronics',
+            description: 'Track your fitness and notifications with this stylish smartwatch.'
+          },
+          {
+            name: 'Cotton T-shirt',
+            price: 19.99,
+            image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=400&q=80',
+            category: 'Apparel',
+            description: 'Comfortable cotton t-shirt available in multiple colors.'
+          },
+          {
+            name: 'Coffee Mug',
+            price: 12.99,
+            image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
+            category: 'Home',
+            description: 'Ceramic mug for your favorite hot beverages.'
+          },
+          {
+            name: 'Throw Pillow',
+            price: 24.99,
+            image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
+            category: 'Home',
+            description: 'Soft and decorative throw pillow for your sofa or bed.'
+          },
+          {
+            name: 'Running Shoes',
+            price: 59.99,
+            image: 'https://images.unsplash.com/photo-1515548212235-7a3bfc5c2d36?auto=format&fit=crop&w=400&q=80',
+            category: 'Apparel',
+            description: 'Lightweight running shoes for all-day comfort.'
+          },
+          {
+            name: 'Bluetooth Speaker',
+            price: 39.99,
+            image: 'https://images.unsplash.com/photo-1465101178521-c1a9136a3fd8?auto=format&fit=crop&w=400&q=80',
+            category: 'Electronics',
+            description: 'Portable Bluetooth speaker with impressive sound.'
+          },
+          {
+            name: 'Notebook',
+            price: 7.99,
+            image: 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=400&q=80',
+            category: 'Office',
+            description: 'A5 size notebook for notes, sketches, and ideas.'
+          },
+          {
+            name: 'Desk Lamp',
+            price: 29.99,
+            image: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
+            category: 'Office',
+            description: 'LED desk lamp with adjustable brightness.'
+          },
+          {
+            name: 'Water Bottle',
+            price: 14.99,
+            image: 'https://images.unsplash.com/photo-1526178613658-3f1622045557?auto=format&fit=crop&w=400&q=80',
+            category: 'Sports',
+            description: 'Stainless steel water bottle, keeps drinks cold for 24h.'
+          }
+        ];
+        const stmt = db.prepare('INSERT INTO products (name, price, image, category, description) VALUES (?, ?, ?, ?, ?)');
+        products.forEach(p => stmt.run(p.name, p.price, p.image, p.category, p.description));
         stmt.finalize();
       }
     });
@@ -59,7 +131,20 @@ app.get('/api/products', (req, res) => {
   const tracer = trace.getTracer('ecommerce-backend');
   const span = tracer.startSpan('GET /api/products');
   console.log('Received GET /api/products request');
-  db.all('SELECT * FROM products', (err, rows) => {
+  const { category, search } = req.query;
+  let query = 'SELECT * FROM products';
+  let params = [];
+  if (category && search) {
+    query += ' WHERE category = ? AND (name LIKE ? OR description LIKE ?)';
+    params = [category, `%${search}%`, `%${search}%`];
+  } else if (category) {
+    query += ' WHERE category = ?';
+    params = [category];
+  } else if (search) {
+    query += ' WHERE name LIKE ? OR description LIKE ?';
+    params = [`%${search}%`, `%${search}%`];
+  }
+  db.all(query, params, (err, rows) => {
     if (err) {
       span.setStatus({ code: 2, message: err.message });
       span.end();
