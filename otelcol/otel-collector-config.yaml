@@ -5,7 +5,8 @@ receivers:
       http:
         cors:
           allowed_origins: ["*"]
-          allowed_headers: ["*", "Authorization"]
+          allowed_headers: ["*"]
+          max_age: 7200
 
 exporters:
   logging:
