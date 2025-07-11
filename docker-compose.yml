@@ -14,6 +14,9 @@ services:
       - ./db:/app/db
     environment:
       - NODE_ENV=production
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otelcol:4318/v1/traces
+      - OTEL_SERVICE_NAME=mezmo-demo-backend
+      - OTEL_TRACES_EXPORTER=otlp
   otelcol:
     image: otel/opentelemetry-collector:latest
     command: ["--config=/etc/otelcol-config.yaml"]
