@@ -1,4 +1,5 @@
 const { NodeSDK } = require('@opentelemetry/sdk-node');
+const { trace } = require('@opentelemetry/api');
 const sdk = new NodeSDK();
 sdk.start();
 const express = require('express');
@@ -55,42 +56,82 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 
 // API endpoints
 app.get('/api/products', (req, res) => {
+  const tracer = trace.getTracer('ecommerce-backend');
+  const span = tracer.startSpan('GET /api/products');
   console.log('Received GET /api/products request');
   db.all('SELECT * FROM products', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      span.setStatus({ code: 2, message: err.message });
+      span.end();
+      return res.status(500).json({ error: err.message });
+    }
+    span.setStatus({ code: 1 });
+    span.end();
     res.json(rows);
   });
 });
 
 app.get('/api/cart', (req, res) => {
+  const tracer = trace.getTracer('ecommerce-backend');
+  const span = tracer.startSpan('GET /api/cart');
   console.log('Received GET /api/cart request');
   db.all('SELECT cart.id, cart.quantity, products.* FROM cart JOIN products ON cart.product_id = products.id', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      span.setStatus({ code: 2, message: err.message });
+      span.end();
+      return res.status(500).json({ error: err.message });
+    }
+    span.setStatus({ code: 1 });
+    span.end();
     res.json(rows);
   });
 });
 
 app.post('/api/cart', (req, res) => {
+  const tracer = trace.getTracer('ecommerce-backend');
+  const span = tracer.startSpan('POST /api/cart');
   const { product_id, quantity } = req.body;
   console.log(`Received POST /api/cart request: product_id=${product_id}, quantity=${quantity}`);
   db.run('INSERT INTO cart (product_id, quantity) VALUES (?, ?)', [product_id, quantity], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      span.setStatus({ code: 2, message: err.message });
+      span.end();
+      return res.status(500).json({ error: err.message });
+    }
+    span.setStatus({ code: 1 });
+    span.end();
     res.json({ id: this.lastID });
   });
 });
 
 app.delete('/api/cart/:id', (req, res) => {
+  const tracer = trace.getTracer('ecommerce-backend');
+  const span = tracer.startSpan('DELETE /api/cart/:id');
   console.log(`Received DELETE /api/cart/${req.params.id} request`);
   db.run('DELETE FROM cart WHERE id = ?', [req.params.id], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      span.setStatus({ code: 2, message: err.message });
+      span.end();
+      return res.status(500).json({ error: err.message });
+    }
+    span.setStatus({ code: 1 });
+    span.end();
     res.json({ success: true });
   });
 });
 
 app.post('/api/checkout', (req, res) => {
+  const tracer = trace.getTracer('ecommerce-backend');
+  const span = tracer.startSpan('POST /api/checkout');
   console.log('Received POST /api/checkout request');
   db.run('DELETE FROM cart', [], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      span.setStatus({ code: 2, message: err.message });
+      span.end();
+      return res.status(500).json({ error: err.message });
+    }
+    span.setStatus({ code: 1 });
+    span.end();
     res.json({ success: true, message: 'Checkout complete!' });
   });
 });
