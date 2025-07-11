@@ -1,7 +1,17 @@
 const { NodeSDK } = require('@opentelemetry/sdk-node');
+const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
+const { OTLPTraceExporter } = require('@opentelemetry/exporter-otlp-http');
 const { trace } = require('@opentelemetry/api');
-const sdk = new NodeSDK();
-sdk.start();
+
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter(),
+  instrumentations: [getNodeAutoInstrumentations()],
+  serviceName: process.env.OTEL_SERVICE_NAME || 'mezmo-demo-backend',
+});
+
+sdk.start().then(() => {
+  console.log('OpenTelemetry SDK started');
+});
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
