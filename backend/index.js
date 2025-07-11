@@ -1,6 +1,8 @@
 const { NodeSDK } = require('@opentelemetry/sdk-node');
 const sdk = new NodeSDK();
 sdk.start();
+const { logs } = require('@opentelemetry/api');
+const logger = logs.getLogger('ecommerce-backend');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -55,7 +57,11 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 
 // API endpoints
 app.get('/api/products', (req, res) => {
-  console.log('Received GET /api/products request');
+  logger.emit({
+    body: 'Received GET /api/products request',
+    severityNumber: 9,
+    severityText: 'INFO'
+  });
   db.all('SELECT * FROM products', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
@@ -63,7 +69,11 @@ app.get('/api/products', (req, res) => {
 });
 
 app.get('/api/cart', (req, res) => {
-  console.log('Received GET /api/cart request');
+  logger.emit({
+    body: 'Received GET /api/cart request',
+    severityNumber: 9,
+    severityText: 'INFO'
+  });
   db.all('SELECT cart.id, cart.quantity, products.* FROM cart JOIN products ON cart.product_id = products.id', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
@@ -72,7 +82,11 @@ app.get('/api/cart', (req, res) => {
 
 app.post('/api/cart', (req, res) => {
   const { product_id, quantity } = req.body;
-  console.log(`Received POST /api/cart request: product_id=${product_id}, quantity=${quantity}`);
+  logger.emit({
+    body: `Received POST /api/cart request: product_id=${product_id}, quantity=${quantity}`,
+    severityNumber: 9,
+    severityText: 'INFO'
+  });
   db.run('INSERT INTO cart (product_id, quantity) VALUES (?, ?)', [product_id, quantity], function(err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id: this.lastID });
@@ -80,7 +94,11 @@ app.post('/api/cart', (req, res) => {
 });
 
 app.delete('/api/cart/:id', (req, res) => {
-  console.log(`Received DELETE /api/cart/${req.params.id} request`);
+  logger.emit({
+    body: `Received DELETE /api/cart/${req.params.id} request`,
+    severityNumber: 9,
+    severityText: 'INFO'
+  });
   db.run('DELETE FROM cart WHERE id = ?', [req.params.id], function(err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true });
@@ -88,7 +106,11 @@ app.delete('/api/cart/:id', (req, res) => {
 });
 
 app.post('/api/checkout', (req, res) => {
-  console.log('Received POST /api/checkout request');
+  logger.emit({
+    body: 'Received POST /api/checkout request',
+    severityNumber: 9,
+    severityText: 'INFO'
+  });
   db.run('DELETE FROM cart', [], function(err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true, message: 'Checkout complete!' });
